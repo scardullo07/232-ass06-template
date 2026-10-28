@@ -170,13 +170,38 @@ DoubleNode *DoublyLinkedList::detachValue(NodeValue value)
 void DoublyLinkedList::pushFrontValue(NodeValue value)
 {
     // TODO: implement
+    DoubleNode *newNode = new DoubleNode(value);
     
+    if (headPtr == nullptr) {
+        headPtr = newNode;
+        tailPtr = newNode;
+        count = 1;
+        return;
+    }
+        
+    newNode->setNext(headPtr);
+    headPtr->setPrev(newNode);
+    headPtr = newNode;
+    count ++;
 }
 
 /// Create a node with new and link it at the end. Handle the empty list.
 void DoublyLinkedList::pushBackValue(NodeValue value)
 {
     // TODO: implement
+    DoubleNode *newNode = new DoubleNode(value);
+
+    if (headPtr == nullptr) {
+        headPtr = newNode;
+        tailPtr = newNode;
+        count = 1;
+        return;
+    }
+
+    newNode->setNext(nullptr);
+    tailPtr->setPrev(newNode);
+    tailPtr = newNode;
+    count ++;
 }
 
 /// Detach the first node, read its value, delete the node, return the value.
