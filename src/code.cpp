@@ -170,13 +170,34 @@ DoubleNode *DoublyLinkedList::detachValue(NodeValue value)
 void DoublyLinkedList::pushFrontValue(NodeValue value)
 {
     // TODO: implement
-    
+    DoubleNode *newNode = new DoubleNode(value);
+
+    if (headPtr == nullptr) {
+        headPtr = newNode;
+        tailPtr = newNode;
+    } else {
+        newNode->setNext(headPtr);
+        headPtr->setPrev(newNode);
+        headPtr = newNode;
+    }
+    count++;
 }
 
 /// Create a node with new and link it at the end. Handle the empty list.
 void DoublyLinkedList::pushBackValue(NodeValue value)
 {
     // TODO: implement
+    DoubleNode *newNode = new DoubleNode(value);
+
+    if (tailPtr == nullptr) {
+        headPtr = newNode;
+        tailPtr = newNode;
+    } else {
+        newNode->setPrev(tailPtr);
+        tailPtr->setNext(newNode);
+        tailPtr = newNode;
+    }
+    count++;
 }
 
 /// Detach the first node, read its value, delete the node, return the value.
@@ -184,7 +205,15 @@ void DoublyLinkedList::pushBackValue(NodeValue value)
 std::optional<NodeValue> DoublyLinkedList::popFrontValue()
 {
     // TODO: implement
-    return std::nullopt;
+    DoubleNode *detachedNode = detachFirst();
+
+    if (detachedNode == nullptr) {
+        return std::nullopt;
+    }
+
+    NodeValue value = detachedNode->getValue();
+    delete detachedNode;
+    return value;
 }
 
 /// Detach the last node, read its value, delete the node, return the value.
@@ -192,7 +221,15 @@ std::optional<NodeValue> DoublyLinkedList::popFrontValue()
 std::optional<NodeValue> DoublyLinkedList::popBackValue()
 {
     // TODO: implement
-    return std::nullopt;
+    DoubleNode *detachedNode = detachLast();
+
+    if (detachedNode == nullptr) {
+        return std::nullopt;
+    }
+
+    NodeValue value = detachedNode->getValue();
+    delete detachedNode;
+    return value;
 }
 
 /// Remove the FIRST node equal to value and free it.
@@ -200,13 +237,27 @@ std::optional<NodeValue> DoublyLinkedList::popBackValue()
 bool DoublyLinkedList::deleteValue(NodeValue value)
 {
     // TODO: implement
-    return false;
+    DoubleNode *detachedNode = detachValue(value);
+
+    if (detachedNode == nullptr) {
+        return false;
+    }
+
+    delete detachedNode;
+    return true;
 }
 
 /// Return true if any node holds value.
 bool DoublyLinkedList::containsValue(NodeValue value) const
 {
     // TODO: implement
+    DoubleNode *current = headPtr;
+    while (current != nullptr) {
+        if (current->getValue() == value) {
+            return true;
+        }
+        current = current->getNext();
+    }
     return false;
 }
 
@@ -215,21 +266,43 @@ bool DoublyLinkedList::containsValue(NodeValue value) const
 int DoublyLinkedList::printForward() const
 {
     // TODO: implement
-    return 0;
+    int countPrinted = 0;
+    DoubleNode *current = headPtr;
+
+    while (current != nullptr) {
+        std::visit([](const auto& value) { std::cout << value; },
+                  current->getValue());
+        std::cout << " ";
+        countPrinted++;
+        current = current->getNext();
+    }
+    std::cout << std::endl;
+    return countPrinted;
 }
 
 /// Print values tail -> head using prevPtr. Return the number of printed values.
 int DoublyLinkedList::printBackward() const
 {
     // TODO: implement
-    return 0;
+    int countPrinted = 0;
+    DoubleNode *current = tailPtr;
+
+    while (current != nullptr) {
+        std::visit([](const auto& value) { std::cout << value; },
+                  current->getValue());
+        std::cout << " ";
+        countPrinted++;
+        current = current->getPrev();
+    }
+    std::cout << std::endl;
+    return countPrinted;
 }
 
 /// Return count.
 int DoublyLinkedList::length() const
 {
     // TODO: implement
-    return 0;
+    return count;
 }
 
 // ===== BEGIN PART 3 (do not remove this marker) =====
@@ -243,32 +316,49 @@ int DoublyLinkedList::length() const
 void StdDoublyLinkedList::pushFrontValue(NodeValue value)
 {
     // TODO: implement
+    data.push_front(value);
 }
 
 /// Which std::list method inserts at the back?
 void StdDoublyLinkedList::pushBackValue(NodeValue value)
 {
     // TODO: implement
+    data.push_back(value);
 }
 
 /// Read the front element, remove it, return it. Empty -> std::nullopt.
 std::optional<NodeValue> StdDoublyLinkedList::popFrontValue()
 {
     // TODO: implement
-    return std::nullopt;
+    if (data.empty()) {
+        return std::nullopt;
+    }
+    NodeValue value = data.front();
+    data.pop_front();
+    return value;
 }
 
 /// Read the back element, remove it, return it. Empty -> std::nullopt.
 std::optional<NodeValue> StdDoublyLinkedList::popBackValue()
 {
     // TODO: implement
-    return std::nullopt;
+    if (data.empty()) {
+        return std::nullopt;
+    }
+    NodeValue value = data.back();
+    data.pop_back();
+    return value;
 }
 
 /// Remove only the FIRST element equal to value. Return true if removed.
 bool StdDoublyLinkedList::deleteValue(NodeValue value)
 {
     // TODO: implement
+    auto firstElement = std::find(data.begin(), data.end(), value);
+    if (firstElement != data.end()) {
+        data.erase(firstElement);
+        return true;
+    }
     return false;
 }
 
@@ -276,6 +366,9 @@ bool StdDoublyLinkedList::deleteValue(NodeValue value)
 bool StdDoublyLinkedList::containsValue(NodeValue value) const
 {
     // TODO: implement
+    if (std::find(data.begin(), data.end(), value) != data.end()) {
+        return true;
+    }
     return false;
 }
 
@@ -283,20 +376,30 @@ bool StdDoublyLinkedList::containsValue(NodeValue value) const
 int StdDoublyLinkedList::printForward() const
 {
     // TODO: implement
-    return 0;
+    for (const auto& value : data) {
+        std::visit([](const auto& val) { std::cout << val; }, value);
+        std::cout << " ";
+    }
+    std::cout << std::endl;
+    return data.size();
 }
 
 /// Print tail -> head (same format as Part 2). Return the number of values.
 int StdDoublyLinkedList::printBackward() const
 {
     // TODO: implement
-    return 0;
+    for (auto element = data.rbegin(); element != data.rend(); ++element) {
+        std::visit([](const auto& val) { std::cout << val; }, *element);
+        std::cout << " ";
+    }
+    std::cout << std::endl;
+    return data.size();
 }
 
 /// size() returns size_t, length() returns int.
 int StdDoublyLinkedList::length() const
 {
     // TODO: implement
-    return 0;
+    return data.size();
 }
 // ===== END PART 3 (do not remove this marker) =====
